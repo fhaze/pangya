@@ -1,10 +1,10 @@
-package server
+package pangya
 
 import (
 	"fmt"
 	"net"
-	"pangya/internal/logger"
-	"pangya/internal/packet"
+	"pangya/src/internal/logger"
+	"pangya/src/internal/packet"
 	"time"
 
 	"github.com/pangbox/pangcrypt"
@@ -16,23 +16,23 @@ type Service interface {
 	AddHandler(id uint16, ph PacketHandler)
 }
 
-type tcpServer struct {
+type pangyaServer struct {
 	hello    func(net.Conn) uint16
 	handlers map[uint16]PacketHandler
 }
 
 func NewServer(hello func(net.Conn) uint16) Service {
-	return &tcpServer{
+	return &pangyaServer{
 		hello:    hello,
 		handlers: make(map[uint16]PacketHandler),
 	}
 }
 
-func (svc *tcpServer) AddHandler(id uint16, ph PacketHandler) {
+func (svc *pangyaServer) AddHandler(id uint16, ph PacketHandler) {
 	svc.handlers[id] = ph
 }
 
-func (svc *tcpServer) Listen(port int) error {
+func (svc *pangyaServer) Listen(port int) error {
 	portStr := fmt.Sprintf(":%d", port)
 	tcp, err := net.Listen("tcp", portStr)
 	if err != nil {
@@ -52,7 +52,7 @@ func (svc *tcpServer) Listen(port int) error {
 	}
 }
 
-func (svc *tcpServer) handleConnection(conn net.Conn) {
+func (svc *pangyaServer) handleConnection(conn net.Conn) {
 	defer conn.Close()
 
 	key := svc.hello(conn)

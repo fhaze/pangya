@@ -41,6 +41,11 @@ func (p *Packet) PutString(v string, l uint) *Packet {
 	return p
 }
 
+func (p *Packet) PutBytes(b []byte) *Packet {
+	p.Payload = append(p.Payload, b...)
+	return p
+}
+
 func (p *Packet) ToBytes() []byte {
 	id := make([]byte, 2)
 	binary.LittleEndian.PutUint16(id, p.ID)

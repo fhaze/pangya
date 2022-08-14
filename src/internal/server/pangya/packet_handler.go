@@ -1,8 +1,8 @@
-package server
+package pangya
 
 import (
 	"net"
-	"pangya/internal/packet"
+	"pangya/src/internal/packet"
 )
 
 type PacketHandler interface {

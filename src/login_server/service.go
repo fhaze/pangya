@@ -3,16 +3,16 @@ package loginserver
 import (
 	"encoding/binary"
 	"net"
-	"pangya/internal/server"
+	"pangya/src/internal/server/pangya"
 )
 
 type LoginServer struct {
-	srv server.Service
+	srv pangya.Service
 }
 
 func New() *LoginServer {
 	return &LoginServer{
-		srv: server.NewServer(func(conn net.Conn) uint16 {
+		srv: pangya.NewServer(func(conn net.Conn) uint16 {
 			key := uint16(1)
 			keyBytes := make([]byte, 2)
 			binary.LittleEndian.PutUint16(keyBytes, key)
@@ -32,6 +32,6 @@ func (ls *LoginServer) Listen(port int) error {
 	return ls.srv.Listen(port)
 }
 
-func (ls *LoginServer) AddHandler(id uint16, pak server.PacketHandler) {
+func (ls *LoginServer) AddHandler(id uint16, pak pangya.PacketHandler) {
 	ls.srv.AddHandler(id, pak)
 }
