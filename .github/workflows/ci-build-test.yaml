@@ -18,13 +18,13 @@ jobs:
         with:
           go-version: '1.18.1'
 
+      - name: Create dotenv
+        run: cp ./.env-template ./.env
+
       - name: Install Dependencies
         run: |
           go version
           make deps
-
-      - name: Create dotenv
-        run: cp ./.env-template ./.env
 
       - name: Build
         run: make build
