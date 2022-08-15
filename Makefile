@@ -6,6 +6,7 @@ deps:
 
 build:
 	mkdir -p ./bin
+	go build -o ./bin/sync_server ./src/cmd/sync_server/main.go
 	go build -o ./bin/login_server ./src/cmd/login_server/main.go
 
 test:
@@ -20,10 +21,13 @@ dev-migrate-down:
 dev-workspace:
 	docker-compose up -d
 
-dev: dev-workspace dev-migrate-up
+dev: build dev-workspace dev-migrate-up
 
 run: dev
-	go run src/cmd/login_server/main.go
+	tmux new-session -d -s PangyaServer -n Shell -d "bin/sync_server; sleep 100"
+	tmux split-window -t PangyaServer "bin/login_server; sleep 100"
+	tmux select-layout -t PangyaServer tiled
+	tmux attach -t PangyaServer
 
 clean:
 	docker-compose down

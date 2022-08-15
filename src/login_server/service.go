@@ -3,7 +3,7 @@ package loginserver
 import (
 	"encoding/binary"
 	"net"
-	"pangya/src/internal/server/pangya"
+	"pangya/src/internal/pangya"
 )
 
 type LoginServer struct {
@@ -32,6 +32,6 @@ func (ls *LoginServer) Listen(port int) error {
 	return ls.srv.Listen(port)
 }
 
-func (ls *LoginServer) AddHandler(id uint16, pak pangya.PacketHandler) {
-	ls.srv.AddHandler(id, pak)
+func (ls *LoginServer) AddHandler(id uint16, ph pangya.PacketHandler) {
+	ls.srv.AddHandler(id, ph)
 }

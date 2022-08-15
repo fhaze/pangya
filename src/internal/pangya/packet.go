@@ -1,4 +1,4 @@
-package packet
+package pangya
 
 import "encoding/binary"
 
@@ -59,7 +59,7 @@ func NewPacket(id uint16) Packet {
 	return Packet{ID: id}
 }
 
-func FromBytes(b []byte) (Packet, error) {
+func PacketFromBytes(b []byte) (Packet, error) {
 	if len(b) < 2 {
 		return Packet{}, nil
 	}

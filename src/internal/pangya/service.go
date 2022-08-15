@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 	"pangya/src/internal/logger"
-	"pangya/src/internal/packet"
 	"time"
 
 	"github.com/pangbox/pangcrypt"
@@ -60,7 +59,8 @@ func (svc *pangyaServer) handleConnection(conn net.Conn) {
 	buf := make([]byte, 1_024)
 	l, err := conn.Read(buf)
 	if err != nil {
-		logger.Log.Sugar().Infof("error reading from remote %s: %s", conn.RemoteAddr().String(), err)
+		logger.Log.Sugar().Errorf("error reading from pangya client %s: %s", conn.RemoteAddr().String(), err)
+		return
 	}
 
 	encryptedData := buf[:l]
@@ -79,7 +79,7 @@ func (svc *pangyaServer) handleConnection(conn net.Conn) {
 		)
 	}
 
-	pak, err := packet.FromBytes(data)
+	pak, err := PacketFromBytes(data)
 	if err != nil {
 		logger.Log.Error(
 			"invalid pangya packet",
@@ -95,5 +95,7 @@ func (svc *pangyaServer) handleConnection(conn net.Conn) {
 	}
 
 	logger.Log.Sugar().Debugf("calling action for packet %d", pak.ID)
-	h.Action(conn, pak, key)
+	if err := h.Action(conn, pak, key); err != nil {
+		logger.Log.Error(err.Error())
+	}
 }

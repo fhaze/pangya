@@ -1,4 +1,4 @@
-package packet
+package pangya
 
 import (
 	"testing"
@@ -47,7 +47,7 @@ func TestPutLString(t *testing.T) {
 }
 
 func TestPacketFromBytes(t *testing.T) {
-	p, err := FromBytes([]byte{0x01, 0x00, 0x07, 0x00})
+	p, err := PacketFromBytes([]byte{0x01, 0x00, 0x07, 0x00})
 	assert.NoError(t, err)
 	assert.Equal(t, uint16(0x01), p.ID)
 	assert.Equal(t, []byte{0x07, 0x00}, p.Payload)

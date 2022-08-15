@@ -4,8 +4,7 @@ import (
 	"net"
 	"pangya/src/domain/account"
 	"pangya/src/internal/logger"
-	"pangya/src/internal/packet"
-	"pangya/src/internal/server/pangya"
+	"pangya/src/internal/pangya"
 
 	"github.com/pangbox/pangcrypt"
 	"go.uber.org/zap"
@@ -18,8 +17,8 @@ func NewP0x0001_ClientLogin() pangya.PacketHandler {
 	return &P0x0001_ClientLogin{}
 }
 
-func (h *P0x0001_ClientLogin) Action(conn net.Conn, pak packet.Packet, key uint16) error {
-	r := packet.NewReader(&pak)
+func (h *P0x0001_ClientLogin) Action(conn net.Conn, pak pangya.Packet, key uint16) error {
+	r := pangya.NewPacketReader(&pak)
 	username, err := r.ReadLString()
 	if err != nil {
 		return err
@@ -35,12 +34,12 @@ func (h *P0x0001_ClientLogin) Action(conn net.Conn, pak packet.Packet, key uint1
 		zap.String("password", password),
 	)
 
-	w := packet.NewPacket(0x0001)
+	w := pangya.NewPacket(0x0001)
 
 	if acc, found := account.Svc().FindAccountByUsernameAndPassword(username, password); found {
-		w.PutUint8(0x00) // status ok
-		w.PutLString(acc.Username)
-		w.PutUint32(uint32(acc.ID))
+		w.PutUint8(0x00)                                                                                       // status ok
+		w.PutLString(acc.Username)                                                                             // username
+		w.PutUint32(uint32(acc.ID))                                                                            // id
 		w.PutBytes([]byte{0x00, 0x00, 0x00, 0x00, 0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}) // unknown
 		w.PutUint16(0x00)                                                                                      // nickname?
 	} else {

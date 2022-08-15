@@ -28,7 +28,7 @@ func Connect() error {
 	if err != nil {
 		return err
 	}
-	logger.Log.Info("successfully conected to database")
+	logger.Log.Info("successfully conected to the database")
 	db = gormDb
 	return nil
 }

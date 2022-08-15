@@ -1,4 +1,4 @@
-package packet
+package pangya
 
 import (
 	"bytes"
@@ -55,6 +55,6 @@ func (pr *PacketReader) move(i uint) error {
 	return nil
 }
 
-func NewReader(p *Packet) *PacketReader {
+func NewPacketReader(p *Packet) *PacketReader {
 	return &PacketReader{0, p}
 }
