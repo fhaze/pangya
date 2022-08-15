@@ -8,6 +8,7 @@ build:
 	mkdir -p ./bin
 	go build -o ./bin/sync_server ./src/cmd/sync_server/main.go
 	go build -o ./bin/login_server ./src/cmd/login_server/main.go
+	go build -o ./bin/game_server ./src/cmd/game_server/main.go
 
 test:
 	go test ./...
@@ -18,16 +19,20 @@ dev-migrate-up:
 dev-migrate-down:
 	migrate -source file://migrations -database ${DB_DSN} down
 
-dev-workspace:
+dev-compose-up:
 	docker-compose up -d
 
-dev: build dev-workspace dev-migrate-up
+dev: build dev-compose-up dev-migrate-up
 
 run: dev
 	tmux new-session -d -s PangyaServer -n Shell -d "bin/sync_server; sleep 100"
 	tmux split-window -t PangyaServer "bin/login_server; sleep 100"
-	tmux select-layout -t PangyaServer tiled
+	tmux split-window -t PangyaServer "bin/game_server; sleep 100"
+	tmux select-layout -t PangyaServer even-vertical
 	tmux attach -t PangyaServer
 
-clean:
+dev-compose-down:
 	docker-compose down
+
+clean: dev-compose-down
+	rm -r ./bin

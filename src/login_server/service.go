@@ -7,10 +7,10 @@ import (
 )
 
 type LoginServer struct {
-	srv pangya.Service
+	srv pangya.Server
 }
 
-func New() *LoginServer {
+func New() pangya.Server {
 	return &LoginServer{
 		srv: pangya.NewServer(func(conn net.Conn) uint16 {
 			key := uint16(1)
@@ -34,4 +34,8 @@ func (ls *LoginServer) Listen(port int) error {
 
 func (ls *LoginServer) AddHandler(id uint16, ph pangya.PacketHandler) {
 	ls.srv.AddHandler(id, ph)
+}
+
+func (ls *LoginServer) ServerName() string {
+	return "LoginServer"
 }

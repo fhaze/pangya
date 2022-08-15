@@ -63,7 +63,8 @@ func (svc *syncServer) handleConnection(conn net.Conn) {
 		l, err := conn.Read(buf)
 		if err != nil {
 			logger.Log.Sugar().Error(err)
-			continue
+			conn.Close()
+			return
 		}
 
 		if l == 0 {

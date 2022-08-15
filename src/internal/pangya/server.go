@@ -10,9 +10,10 @@ import (
 	"go.uber.org/zap"
 )
 
-type Service interface {
+type Server interface {
 	Listen(port int) error
 	AddHandler(id uint16, ph PacketHandler)
+	ServerName() string
 }
 
 type pangyaServer struct {
@@ -20,7 +21,7 @@ type pangyaServer struct {
 	handlers map[uint16]PacketHandler
 }
 
-func NewServer(hello func(net.Conn) uint16) Service {
+func NewServer(hello func(net.Conn) uint16) Server {
 	return &pangyaServer{
 		hello:    hello,
 		handlers: make(map[uint16]PacketHandler),
@@ -49,6 +50,10 @@ func (svc *pangyaServer) Listen(port int) error {
 		logger.Log.Sugar().Infof("accepted connection from %s", conn.RemoteAddr().String())
 		go svc.handleConnection(conn)
 	}
+}
+
+func (svc *pangyaServer) ServerName() string {
+	return "GenericServer"
 }
 
 func (svc *pangyaServer) handleConnection(conn net.Conn) {

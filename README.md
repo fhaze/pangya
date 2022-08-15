@@ -46,6 +46,14 @@ make run
 
 > 📢 All servers are executed inside tmux, just tap `CTRL+C` to close each server.
 
+## 🗑 Stop and Clean
+
+You can stop `docker-compose` and clean binaries by running
+
+```bash
+make clean
+```
+
 ## License
 
 [WTFPL](https://choosealicense.com/licenses/wtfpl/)

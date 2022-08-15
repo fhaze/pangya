@@ -1,12 +1,11 @@
 package main
 
 import (
+	gameserver "pangya/src/game_server"
 	"pangya/src/internal/database"
 	"pangya/src/internal/logger"
 	"pangya/src/internal/sync"
 	"pangya/src/internal/utils"
-	loginserver "pangya/src/login_server"
-	"pangya/src/login_server/handlers"
 	syncclient "pangya/src/sync_client"
 	synchandlers "pangya/src/sync_client/handlers"
 
@@ -15,14 +14,12 @@ import (
 )
 
 func main() {
-	figure.NewColorFigure("LoginServer", "graffiti", "blue", true).Print()
+	figure.NewColorFigure("GameServer", "graffiti", "green", true).Print()
 	godotenv.Load()
 	database.Connect()
-	svc := loginserver.New()
+	svc := gameserver.New()
 
-	svc.AddHandler(0x0001, handlers.NewP0x0001_ClientLogin())
-
-	port := utils.GetIntEnv("LOGIN_PORT")
+	port := utils.GetIntEnv("GAME_PORT")
 	client := syncclient.New(svc)
 
 	client.AddHandler(sync.PacketHandshake, synchandlers.NewServerhandshake(client))
