@@ -38,10 +38,10 @@ make build
 
 ## 🚀 Running Locally
 
-I created a make target called `dev` to quickly build and run all the servers locally. You should use it, cuz it's simpler and convenient
+I created a make target called `run` to quickly build and run all the servers locally. You should use it, cuz it's simpler and convenient
 
 ```bash
-make dev
+make run
 ```
 
 > 📢 All servers are executed inside tmux, just tap `CTRL+C` to close each server.
