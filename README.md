@@ -2,18 +2,18 @@
 
 Just another pangya server, but this time created for the Go Language.
 
-## 🤔Considerations
+## 🤔 Considerations
 
 This project is an experiment and probably will not be finished.
 
-## 📦Requirements
+## 📦 Requirements
 
 - go 1.18
 - go-migrate cli
 - tmux
 - docker
 
-## 💻Environment Setup
+## 💻 Environment Setup
 
 I'm currently using WSL with Ubuntu, but it should work for any Linux distro and macOS as well. Windows is not supported and never will (not by me 😉).
 
@@ -36,7 +36,7 @@ Build everything
 make build
 ```
 
-## 🚀Running Locally
+## 🚀 Running Locally
 
 I created a make target called `dev` to quickly build and run all the servers locally. You should use it, cuz it's simpler and convenient
 
