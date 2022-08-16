@@ -7,5 +7,6 @@ const (
 )
 
 const (
-	PacketHandshake = "handshake"
+	PacketHandshake      = "handshake"
+	PacketGameServerList = "gamesever_list"
 )

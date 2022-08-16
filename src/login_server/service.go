@@ -39,6 +39,6 @@ func (ls *LoginServer) AddHandler(id uint16, ph pangya.PacketHandler) {
 	ls.srv.AddHandler(id, ph)
 }
 
-func (ls *LoginServer) ServerName() string {
-	return "LoginServer"
+func (ls *LoginServer) ServerInfo() pangya.ServerInfo {
+	return pangya.ServerInfo{Type: "LoginServer"}
 }

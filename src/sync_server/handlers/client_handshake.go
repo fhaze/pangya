@@ -23,7 +23,7 @@ func (ch *ClientHandshake) Action(conn net.Conn, pak []byte) error {
 	}
 
 	ch.svc.AddClient(req.Server, conn)
-	logger.Log.Sugar().Infof("registered %s from %s", req.Server, conn.RemoteAddr())
+	logger.Log.Sugar().Infof("registered %v from %s", req.Server, conn.RemoteAddr())
 
 	res := sync.ServerPacketHandshake{
 		PacketBase: sync.PacketBase{
@@ -37,6 +37,6 @@ func (ch *ClientHandshake) Action(conn net.Conn, pak []byte) error {
 		return err
 	}
 
-	conn.Write(buf)
-	return nil
+	_, err = conn.Write(buf)
+	return err
 }

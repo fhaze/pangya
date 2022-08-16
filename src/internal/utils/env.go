@@ -17,3 +17,19 @@ func GetIntEnv(name string) int {
 	}
 	return val
 }
+
+func GetUint16Env(name string) uint16 {
+	val, err := strconv.Atoi(os.Getenv(name))
+	if err != nil {
+		logger.Log.Fatal(err.Error())
+	}
+	return uint16(val)
+}
+
+func GetUint32Env(name string) uint32 {
+	val, err := strconv.Atoi(os.Getenv(name))
+	if err != nil {
+		logger.Log.Fatal(err.Error())
+	}
+	return uint32(val)
+}

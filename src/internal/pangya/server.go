@@ -14,7 +14,17 @@ import (
 type Server interface {
 	Listen(port int) error
 	AddHandler(id uint16, ph PacketHandler)
-	ServerName() string
+	ServerInfo() ServerInfo
+}
+
+type ServerInfo struct {
+	Type     string `json:"type"`
+	Name     string `json:"name,omitempty"`
+	IP       string `json:"ip,omitempty"`
+	Port     uint16 `json:"port,omitempty"`
+	MaxUsers uint32 `json:"maxUsers,omitempty"`
+	Flags    uint32 `json:"flags,omitempty"`
+	Boosts   uint16 `json:"boosts,omitempty"`
 }
 
 type ServerConfig interface {
@@ -57,8 +67,8 @@ func (svc *pangyaServer) Listen(port int) error {
 	}
 }
 
-func (svc *pangyaServer) ServerName() string {
-	return "GenericServer"
+func (svc *pangyaServer) ServerInfo() ServerInfo {
+	return ServerInfo{Type: "GenericServer"}
 }
 
 func (svc *pangyaServer) handleConnection(conn net.Conn) {

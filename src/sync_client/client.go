@@ -17,9 +17,11 @@ import (
 type Client interface {
 	Dial(addr string, port int) error
 	AddHandler(id string, ph sync.PacketHandler)
+	Request(pak interface{}) error
 }
 
 type syncClient struct {
+	conn     net.Conn
 	handlers map[string]sync.PacketHandler
 	srv      pangya.Server
 }
@@ -39,18 +41,35 @@ func (svc *syncClient) Dial(addr string, port int) error {
 	logger.Log.Sugar().Infof("trying to connect to sync server %s:%d", addr, port)
 
 	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", addr, port))
+	svc.conn = conn
 	if err != nil {
 		return err
 	}
 	logger.Log.Sugar().Infof("connected to sync server %s:%d", addr, port)
 
-	svc.handshake(svc.srv.ServerName(), conn)
+	svc.handshake(svc.srv.ServerInfo(), conn)
 	go svc.handleConnection(conn)
 
 	return nil
 }
 
-func (svc *syncClient) handshake(server string, conn net.Conn) error {
+func (svc *syncClient) Request(pak interface{}) error {
+	var buf []byte
+	buf, err := json.Marshal(pak)
+	if err != nil {
+		return err
+	}
+
+	logger.Log.Debug(
+		"sending packet to sync server",
+		zap.Any("payload", pak),
+	)
+
+	_, err = svc.conn.Write(buf)
+	return err
+}
+
+func (svc *syncClient) handshake(server pangya.ServerInfo, conn net.Conn) error {
 	addr := strings.Split(conn.LocalAddr().String(), ":")
 	port, err := strconv.Atoi(addr[1])
 	if err != nil {
@@ -66,19 +85,8 @@ func (svc *syncClient) handshake(server string, conn net.Conn) error {
 		Port:   port,
 	}
 
-	var buf []byte
-	buf, err = json.Marshal(req)
-	if err != nil {
-		return err
-	}
-
 	logger.Log.Sugar().Infof("trying to handshake to sync server")
-	_, err = conn.Write(buf)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return svc.Request(req)
 }
 
 func (svc *syncClient) handleConnection(conn net.Conn) {

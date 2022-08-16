@@ -20,10 +20,11 @@ func main() {
 	database.Connect()
 	svc := loginserver.New()
 
-	svc.AddHandler(0x0001, handlers.NewP0x0001_ClientLogin())
-
 	port := utils.GetIntEnv("LOGIN_PORT")
 	client := syncclient.New(svc)
+
+	svc.AddHandler(0x0001, handlers.NewP0x0001_ClientLogin())
+	svc.AddHandler(0x0002, handlers.NewP0x0002_GameServerList(client))
 
 	client.AddHandler(sync.PacketHandshake, synchandlers.NewServerhandshake(client))
 

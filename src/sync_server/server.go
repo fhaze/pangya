@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"pangya/src/internal/logger"
+	"pangya/src/internal/pangya"
 	"pangya/src/internal/sync"
 
 	"go.uber.org/zap"
@@ -13,27 +14,36 @@ import (
 
 type Server interface {
 	Listen(port int) error
-	AddClient(server string, conn net.Conn)
+	AddClient(server pangya.ServerInfo, conn net.Conn)
 	AddHandler(id string, ph sync.PacketHandler)
+	GameServerList() []*Client
+}
+
+type Client struct {
+	conn net.Conn
+	Info pangya.ServerInfo
 }
 
 type syncServer struct {
-	clients  map[string]map[string]net.Conn
+	clients  map[string]map[string]*Client
 	handlers map[string]sync.PacketHandler
 }
 
 func New() Server {
 	return &syncServer{
-		clients:  make(map[string]map[string]net.Conn),
+		clients:  make(map[string]map[string]*Client),
 		handlers: make(map[string]sync.PacketHandler),
 	}
 }
 
-func (svc *syncServer) AddClient(server string, conn net.Conn) {
-	if svc.clients[server] == nil {
-		svc.clients[server] = make(map[string]net.Conn)
+func (svc *syncServer) AddClient(server pangya.ServerInfo, conn net.Conn) {
+	if svc.clients[server.Type] == nil {
+		svc.clients[server.Type] = make(map[string]*Client)
 	}
-	svc.clients[server][conn.RemoteAddr().String()] = conn
+	svc.clients[server.Type][conn.RemoteAddr().String()] = &Client{
+		Info: server,
+		conn: conn,
+	}
 }
 
 func (svc *syncServer) AddHandler(id string, ph sync.PacketHandler) {
@@ -60,6 +70,14 @@ func (svc *syncServer) Listen(port int) error {
 	}
 }
 
+func (svc *syncServer) GameServerList() []*Client {
+	var clients []*Client
+	for _, client := range svc.clients["GameServer"] {
+		clients = append(clients, client)
+	}
+	return clients
+}
+
 func (svc *syncServer) handleConnection(conn net.Conn) {
 	for {
 		buf := make([]byte, 1_024)
@@ -69,10 +87,10 @@ func (svc *syncServer) handleConnection(conn net.Conn) {
 			conn.Close()
 
 			remoteAddr := conn.RemoteAddr().String()
-			for server := range svc.clients {
-				if _, found := svc.clients[server][remoteAddr]; found {
-					delete(svc.clients[server], remoteAddr)
-					logger.Log.Sugar().Infof("unregistered %s from %s", server, conn.RemoteAddr())
+			for serverType := range svc.clients {
+				if _, found := svc.clients[serverType][remoteAddr]; found {
+					delete(svc.clients[serverType], remoteAddr)
+					logger.Log.Sugar().Infof("unregistered %s from %s", serverType, conn.RemoteAddr())
 				}
 			}
 			return
