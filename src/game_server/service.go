@@ -37,8 +37,9 @@ func New() pangya.Server {
 			IP:       utils.GetStringEnv("GAME_HOST"),
 			Port:     utils.GetUint16Env("GAME_PORT"),
 			MaxUsers: utils.GetUint32Env("GAME_MAX_USERS"),
-			Flags:    utils.GetUint32Env("GAME_FLAGS"),
+			Flags:    utils.GetUint16Env("GAME_FLAGS"),
 			Boosts:   utils.GetUint16Env("GAME_BOOSTS"),
+			Icon:     utils.GetUint16Env("GAME_ICON"),
 		},
 	}
 }
@@ -60,5 +61,6 @@ func (ls *GameServer) ServerInfo() pangya.ServerInfo {
 		MaxUsers: ls.info.MaxUsers,
 		Flags:    ls.info.Flags,
 		Boosts:   ls.info.Boosts,
+		Icon:     ls.info.Icon,
 	}
 }

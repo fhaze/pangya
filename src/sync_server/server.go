@@ -17,10 +17,11 @@ type Server interface {
 	AddClient(server pangya.ServerInfo, conn net.Conn)
 	AddHandler(id string, ph sync.PacketHandler)
 	GameServerList() []*Client
+	LoginServerList() []*Client
 }
 
 type Client struct {
-	conn net.Conn
+	Conn net.Conn
 	Info pangya.ServerInfo
 }
 
@@ -42,7 +43,7 @@ func (svc *syncServer) AddClient(server pangya.ServerInfo, conn net.Conn) {
 	}
 	svc.clients[server.Type][conn.RemoteAddr().String()] = &Client{
 		Info: server,
-		conn: conn,
+		Conn: conn,
 	}
 }
 
@@ -73,6 +74,14 @@ func (svc *syncServer) Listen(port int) error {
 func (svc *syncServer) GameServerList() []*Client {
 	var clients []*Client
 	for _, client := range svc.clients["GameServer"] {
+		clients = append(clients, client)
+	}
+	return clients
+}
+
+func (svc *syncServer) LoginServerList() []*Client {
+	var clients []*Client
+	for _, client := range svc.clients["LoginServer"] {
 		clients = append(clients, client)
 	}
 	return clients

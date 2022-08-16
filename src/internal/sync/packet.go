@@ -18,3 +18,8 @@ type ServerPacketHandshake struct {
 	Status  string `json:"status"`
 	Message string `json:"message,omitempty"`
 }
+
+type ServerPacketGameServerList struct {
+	PacketBase
+	Servers []pangya.ServerInfo `json:"servers"`
+}

@@ -7,7 +7,8 @@ import (
 )
 
 type LoginServer struct {
-	srv pangya.Server
+	srv         pangya.Server
+	GameServers []pangya.ServerInfo
 }
 
 type loginServerConfig struct {
@@ -27,7 +28,7 @@ func (lsc *loginServerConfig) OnClientConnect(conn net.Conn) uint16 {
 	return key
 }
 
-func New() pangya.Server {
+func New() *LoginServer {
 	return &LoginServer{srv: pangya.NewServer(&loginServerConfig{})}
 }
 

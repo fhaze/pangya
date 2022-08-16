@@ -25,14 +25,37 @@ func (ch *ClientHandshake) Action(conn net.Conn, pak []byte) error {
 	ch.svc.AddClient(req.Server, conn)
 	logger.Log.Sugar().Infof("registered %v from %s", req.Server, conn.RemoteAddr())
 
-	res := sync.ServerPacketHandshake{
+	res := sync.ServerPacketGameServerList{
+		PacketBase: sync.PacketBase{
+			ID: sync.PacketGameServerList,
+		},
+	}
+	for _, gameServer := range ch.svc.GameServerList() {
+		res.Servers = append(res.Servers, gameServer.Info)
+	}
+
+	var l int
+	for _, loginServer := range ch.svc.LoginServerList() {
+		var buf []byte
+		buf, err := json.Marshal(res)
+		if err != nil {
+			return err
+		}
+		if _, err = loginServer.Conn.Write(buf); err != nil {
+			return err
+		}
+		l++
+	}
+	logger.Log.Sugar().Infof("broadcasted %v from %s to %d LoginServer(s)", req.Server, conn.RemoteAddr(), l)
+
+	hsRes := sync.ServerPacketHandshake{
 		PacketBase: sync.PacketBase{
 			ID: sync.PacketHandshake,
 		},
 		Status: "OK",
 	}
 	var buf []byte
-	buf, err := json.Marshal(res)
+	buf, err := json.Marshal(hsRes)
 	if err != nil {
 		return err
 	}

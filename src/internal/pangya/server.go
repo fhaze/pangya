@@ -23,8 +23,9 @@ type ServerInfo struct {
 	IP       string `json:"ip,omitempty"`
 	Port     uint16 `json:"port,omitempty"`
 	MaxUsers uint32 `json:"maxUsers,omitempty"`
-	Flags    uint32 `json:"flags,omitempty"`
+	Flags    uint16 `json:"flags,omitempty"`
 	Boosts   uint16 `json:"boosts,omitempty"`
+	Icon     uint16 `json:"icon,omitempty"`
 }
 
 type ServerConfig interface {

@@ -31,6 +31,14 @@ run: dev
 	tmux select-layout -t PangyaServer even-vertical
 	tmux attach -t PangyaServer
 
+run2: dev
+	tmux new-session -d -s PangyaServer -n Shell -d "bin/sync_server; sleep 100"
+	tmux split-window -t PangyaServer "bin/login_server; sleep 100"
+	tmux split-window -t PangyaServer "cd bin; dotenv -f ../.env run ./game_server; sleep 100"
+	tmux split-window -t PangyaServer "cd bin; dotenv -f ../.env2 run ./game_server; sleep 100"
+	tmux select-layout -t PangyaServer tiled
+	tmux attach -t PangyaServer
+
 dev-compose-down:
 	docker-compose down
 

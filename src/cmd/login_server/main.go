@@ -23,10 +23,10 @@ func main() {
 	port := utils.GetIntEnv("LOGIN_PORT")
 	client := syncclient.New(svc)
 
-	svc.AddHandler(0x0001, handlers.NewP0x0001_ClientLogin())
-	svc.AddHandler(0x0002, handlers.NewP0x0002_GameServerList(client))
+	svc.AddHandler(0x0001, handlers.NewP0x0001_ClientLogin(svc))
 
 	client.AddHandler(sync.PacketHandshake, synchandlers.NewServerhandshake(client))
+	client.AddHandler(sync.PacketGameServerList, synchandlers.NewServerGameServerList(client, svc))
 
 	syncHost := utils.GetStringEnv("SYNC_HOST")
 	syncPort := utils.GetIntEnv("SYNC_PORT")
