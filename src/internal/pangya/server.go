@@ -1,6 +1,7 @@
 package pangya
 
 import (
+	"encoding/hex"
 	"fmt"
 	"net"
 	"pangya/src/internal/logger"
@@ -16,15 +17,19 @@ type Server interface {
 	ServerName() string
 }
 
-type pangyaServer struct {
-	hello    func(net.Conn) uint16
-	handlers map[uint16]PacketHandler
+type ServerConfig interface {
+	OnClientConnect(con net.Conn) uint16
 }
 
-func NewServer(hello func(net.Conn) uint16) Server {
+type pangyaServer struct {
+	handlers map[uint16]PacketHandler
+	conf     ServerConfig
+}
+
+func NewServer(conf ServerConfig) Server {
 	return &pangyaServer{
-		hello:    hello,
 		handlers: make(map[uint16]PacketHandler),
+		conf:     conf,
 	}
 }
 
@@ -59,7 +64,7 @@ func (svc *pangyaServer) ServerName() string {
 func (svc *pangyaServer) handleConnection(conn net.Conn) {
 	defer conn.Close()
 
-	key := svc.hello(conn)
+	key := svc.conf.OnClientConnect(conn)
 
 	buf := make([]byte, 1_024)
 	l, err := conn.Read(buf)
@@ -69,7 +74,6 @@ func (svc *pangyaServer) handleConnection(conn net.Conn) {
 	}
 
 	encryptedData := buf[:l]
-	logger.Log.Debug("recived packet", zap.Int("packetLength", len(encryptedData)))
 
 	if len(encryptedData) == 0 {
 		logger.Log.Debug("packet size is 0")
@@ -92,6 +96,14 @@ func (svc *pangyaServer) handleConnection(conn net.Conn) {
 		)
 		return
 	}
+
+	logger.Log.Debug(
+		"received packet",
+		zap.Int("length", len(pak.ToBytes())),
+		zap.Int("packetID", int(pak.ID)),
+		zap.String("packetPayload", hex.EncodeToString(pak.Payload)),
+		zap.String("packetPayloadStr", string(pak.Payload)),
+	)
 
 	h, found := svc.handlers[pak.ID]
 	if !found {

@@ -5,8 +5,8 @@ import (
 	"pangya/src/domain/account"
 	"pangya/src/internal/logger"
 	"pangya/src/internal/pangya"
+	"pangya/src/internal/utils"
 
-	"github.com/pangbox/pangcrypt"
 	"go.uber.org/zap"
 )
 
@@ -17,8 +17,8 @@ func NewP0x0001_ClientLogin() pangya.PacketHandler {
 	return &P0x0001_ClientLogin{}
 }
 
-func (h *P0x0001_ClientLogin) Action(conn net.Conn, pak pangya.Packet, key uint16) error {
-	r := pangya.NewPacketReader(&pak)
+func (h *P0x0001_ClientLogin) Action(conn net.Conn, req pangya.Packet, key uint16) error {
+	r := pangya.NewPacketReader(&req)
 	username, err := r.ReadLString()
 	if err != nil {
 		return err
@@ -29,7 +29,7 @@ func (h *P0x0001_ClientLogin) Action(conn net.Conn, pak pangya.Packet, key uint1
 	}
 
 	logger.Log.Debug(
-		"try login",
+		"trying login",
 		zap.String("username", username),
 		zap.String("password", password),
 	)
@@ -47,11 +47,5 @@ func (h *P0x0001_ClientLogin) Action(conn net.Conn, pak pangya.Packet, key uint1
 		w.PutUint32(5100143) // invalid credentials
 	}
 
-	res, err := pangcrypt.ServerEncrypt(w.ToBytes(), byte(key), 0x00)
-	if err != nil {
-		return err
-	}
-
-	conn.Write(res)
-	return nil
+	return utils.SendEncryptedPacketToClient(w, conn, key)
 }

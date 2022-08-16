@@ -18,19 +18,22 @@ type Server interface {
 }
 
 type syncServer struct {
-	clients  map[string][]net.Conn
+	clients  map[string]map[string]net.Conn
 	handlers map[string]sync.PacketHandler
 }
 
 func New() Server {
 	return &syncServer{
-		clients:  make(map[string][]net.Conn),
+		clients:  make(map[string]map[string]net.Conn),
 		handlers: make(map[string]sync.PacketHandler),
 	}
 }
 
 func (svc *syncServer) AddClient(server string, conn net.Conn) {
-	svc.clients[server] = append(svc.clients[server], conn)
+	if svc.clients[server] == nil {
+		svc.clients[server] = make(map[string]net.Conn)
+	}
+	svc.clients[server][conn.RemoteAddr().String()] = conn
 }
 
 func (svc *syncServer) AddHandler(id string, ph sync.PacketHandler) {
@@ -64,6 +67,14 @@ func (svc *syncServer) handleConnection(conn net.Conn) {
 		if err != nil {
 			logger.Log.Sugar().Error(err)
 			conn.Close()
+
+			remoteAddr := conn.RemoteAddr().String()
+			for server := range svc.clients {
+				if _, found := svc.clients[server][remoteAddr]; found {
+					delete(svc.clients[server], remoteAddr)
+					logger.Log.Sugar().Infof("unregistered %s from %s", server, conn.RemoteAddr())
+				}
+			}
 			return
 		}
 

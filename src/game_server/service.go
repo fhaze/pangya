@@ -10,22 +10,25 @@ type GameServer struct {
 	srv pangya.Server
 }
 
+type gameServerConfig struct {
+}
+
+func (gsc *gameServerConfig) OnClientConnect(conn net.Conn) uint16 {
+	key := uint16(1)
+	keyBytes := make([]byte, 2)
+	binary.LittleEndian.PutUint16(keyBytes, key)
+
+	p := pangya.NewPacket(0x0000)
+	p.PutBytes([]byte{0x3f, 0x00, 0x01, 0x01})
+	p.PutBytes(keyBytes)
+	p.PutLString(conn.RemoteAddr().String())
+
+	conn.Write(p.ToBytes())
+	return key
+}
+
 func New() pangya.Server {
-	return &GameServer{
-		srv: pangya.NewServer(func(conn net.Conn) uint16 {
-			key := uint16(1)
-			keyBytes := make([]byte, 2)
-			binary.LittleEndian.PutUint16(keyBytes, key)
-
-			p := pangya.NewPacket(0x0000)
-			p.PutBytes([]byte{0x3f, 0x00, 0x01, 0x01})
-			p.PutBytes(keyBytes)
-			p.PutLString(conn.RemoteAddr().String())
-
-			conn.Write(p.ToBytes())
-			return key
-		}),
-	}
+	return &GameServer{srv: pangya.NewServer(&gameServerConfig{})}
 }
 
 func (ls *GameServer) Listen(port int) error {
