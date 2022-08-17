@@ -20,10 +20,14 @@ func (gsc *gameServerConfig) OnClientConnect(conn net.Conn) uint16 {
 	keyBytes := make([]byte, 2)
 	binary.LittleEndian.PutUint16(keyBytes, key)
 
-	p := pangya.NewPacket(0x0000)
-	p.PutBytes([]byte{0x3f, 0x00, 0x01, 0x01})
-	p.PutBytes(keyBytes)
-	p.PutLString(conn.RemoteAddr().String())
+	i := pangya.NewPacket()
+	i.PutBytes([]byte{0x00, 0x3f, 0x00, 0x01, 0x01}) // unknown
+	i.PutBytes(keyBytes)
+	i.PutLString("127.0.0.1")
+
+	p := pangya.NewPacket()
+	p.PutUint8(0x00)
+	p.PutLString(string(i.ToBytes()))
 
 	conn.Write(p.ToBytes())
 	return key
@@ -33,6 +37,8 @@ func New() pangya.Server {
 	return &GameServer{
 		srv: pangya.NewServer(&gameServerConfig{}),
 		info: pangya.ServerInfo{
+			Type:     "GameServer",
+			ID:       utils.GetUint16Env("GAME_ID"),
 			Name:     utils.GetStringEnv("GAME_NAME"),
 			IP:       utils.GetStringEnv("GAME_HOST"),
 			Port:     utils.GetUint16Env("GAME_PORT"),
@@ -54,7 +60,8 @@ func (ls *GameServer) AddHandler(id uint16, ph pangya.PacketHandler) {
 
 func (ls *GameServer) ServerInfo() pangya.ServerInfo {
 	return pangya.ServerInfo{
-		Type:     "GameServer",
+		Type:     ls.info.Type,
+		ID:       ls.info.ID,
 		Name:     ls.info.Name,
 		IP:       ls.info.IP,
 		Port:     ls.info.Port,

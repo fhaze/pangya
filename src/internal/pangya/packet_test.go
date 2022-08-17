@@ -11,6 +11,13 @@ func TestPacketID(t *testing.T) {
 	assert.Equal(t, uint16(0x07), p.ID)
 }
 
+func TestPacketNoID(t *testing.T) {
+	p := NewPacket()
+	p.PutUint16(0x25)
+	assert.Equal(t, uint16(0x00), p.ID)
+	assert.Equal(t, []byte{0x25, 0x00}, p.ToBytes())
+}
+
 func TestPutUint8(t *testing.T) {
 	p := NewPacket(0x04)
 	p.PutUint8(0x08)

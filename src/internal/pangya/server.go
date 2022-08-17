@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"pangya/src/internal/logger"
+	"pangya/src/models"
 	"time"
 
 	"github.com/pangbox/pangcrypt"
@@ -19,6 +20,7 @@ type Server interface {
 
 type ServerInfo struct {
 	Type     string `json:"type"`
+	ID       uint16 `json:"id,omitempty"`
 	Name     string `json:"name,omitempty"`
 	IP       string `json:"ip,omitempty"`
 	Port     uint16 `json:"port,omitempty"`
@@ -26,6 +28,11 @@ type ServerInfo struct {
 	Flags    uint16 `json:"flags,omitempty"`
 	Boosts   uint16 `json:"boosts,omitempty"`
 	Icon     uint16 `json:"icon,omitempty"`
+}
+
+type ConnAccount struct {
+	Conn    net.Conn
+	Account *models.Account
 }
 
 type ServerConfig interface {
@@ -59,7 +66,7 @@ func (svc *pangyaServer) Listen(port int) error {
 
 	for {
 		conn, err := tcp.Accept()
-		conn.SetDeadline(time.Now().Add(time.Second * 5))
+		conn.SetDeadline(time.Now().Add(time.Minute * 10))
 		if err != nil {
 			return err
 		}
@@ -76,54 +83,61 @@ func (svc *pangyaServer) handleConnection(conn net.Conn) {
 	defer conn.Close()
 
 	key := svc.conf.OnClientConnect(conn)
-
 	buf := make([]byte, 1_024)
-	l, err := conn.Read(buf)
-	if err != nil {
-		logger.Log.Sugar().Errorf("error reading from pangya client %s: %s", conn.RemoteAddr().String(), err)
-		return
+
+	connAccount := &ConnAccount{
+		Conn: conn,
 	}
 
-	encryptedData := buf[:l]
+	for {
+		l, err := conn.Read(buf)
+		if err != nil {
+			logger.Log.Sugar().Errorf("error reading from pangya client %s: %s", conn.RemoteAddr().String(), err)
+			return
+		}
 
-	if len(encryptedData) == 0 {
-		logger.Log.Debug("packet size is 0")
-		return
-	}
+		encryptedData := buf[:l]
 
-	data, err := pangcrypt.ClientDecrypt(encryptedData, byte(key))
-	if err != nil {
-		logger.Log.Error(
-			"could not decrypt client packet",
-			zap.Error(err),
+		if len(encryptedData) == 0 {
+			logger.Log.Debug("packet size is 0")
+			return
+		}
+
+		data, err := pangcrypt.ClientDecrypt(encryptedData, byte(key))
+		if err != nil {
+			logger.Log.Error(
+				"could not decrypt client packet",
+				zap.Error(err),
+			)
+		}
+
+		pak, err := PacketFromBytes(data)
+		if err != nil {
+			logger.Log.Error(
+				"invalid pangya packet",
+				zap.Error(err),
+			)
+			return
+		}
+
+		logger.Log.Debug(
+			"received packet",
+			zap.Int("length", len(pak.ToBytes())),
+			zap.Int("packetID", int(pak.ID)),
+			zap.String("packetPayload", hex.EncodeToString(pak.Payload)),
+			zap.String("packetPayloadStr", string(pak.Payload)),
 		)
-	}
 
-	pak, err := PacketFromBytes(data)
-	if err != nil {
-		logger.Log.Error(
-			"invalid pangya packet",
-			zap.Error(err),
-		)
-		return
-	}
+		h, found := svc.handlers[pak.ID]
+		if !found {
+			logger.Log.Sugar().Warnf("packet %d not implemented", pak.ID)
+			return
+		}
 
-	logger.Log.Debug(
-		"received packet",
-		zap.Int("length", len(pak.ToBytes())),
-		zap.Int("packetID", int(pak.ID)),
-		zap.String("packetPayload", hex.EncodeToString(pak.Payload)),
-		zap.String("packetPayloadStr", string(pak.Payload)),
-	)
+		logger.Log.Sugar().Debugf("calling action for packet %d", pak.ID)
 
-	h, found := svc.handlers[pak.ID]
-	if !found {
-		logger.Log.Sugar().Warnf("packet %d not implemented", pak.ID)
-		return
-	}
-
-	logger.Log.Sugar().Debugf("calling action for packet %d", pak.ID)
-	if err := h.Action(conn, pak, key); err != nil {
-		logger.Log.Error(err.Error())
+		if err := h.Action(connAccount, NewPacketReader(&pak), key); err != nil {
+			logger.Log.Error(err.Error())
+		}
 	}
 }

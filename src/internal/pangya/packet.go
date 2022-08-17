@@ -48,15 +48,21 @@ func (p *Packet) PutBytes(b []byte) *Packet {
 
 func (p *Packet) ToBytes() []byte {
 	id := make([]byte, 2)
-	binary.LittleEndian.PutUint16(id, p.ID)
 	var b []byte
-	b = append(b, id...)
+	if p.ID > 0 {
+		binary.LittleEndian.PutUint16(id, p.ID)
+		b = append(b, id...)
+	}
 	b = append(b, p.Payload...)
 	return b
 }
 
-func NewPacket(id uint16) Packet {
-	return Packet{ID: id}
+func NewPacket(id ...uint16) Packet {
+	if len(id) > 0 {
+		return Packet{ID: id[0]}
+	} else {
+		return Packet{}
+	}
 }
 
 func PacketFromBytes(b []byte) (Packet, error) {

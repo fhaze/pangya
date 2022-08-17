@@ -40,7 +40,7 @@ run2: dev
 	tmux attach -t PangyaServer
 
 dev-compose-down:
-	docker-compose down
+	docker-compose down --volume
 
 clean: dev-compose-down
 	rm -r ./bin

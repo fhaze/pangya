@@ -4,4 +4,5 @@ type Account struct {
 	PangyaModel
 	Username string
 	Password string
+	Nickname *string
 }

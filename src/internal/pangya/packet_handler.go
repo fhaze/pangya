@@ -1,7 +1,5 @@
 package pangya
 
-import "net"
-
 type PacketHandler interface {
-	Action(conn net.Conn, req Packet, key uint16) error
+	Action(conn *ConnAccount, req *PacketReader, key uint16) error
 }
